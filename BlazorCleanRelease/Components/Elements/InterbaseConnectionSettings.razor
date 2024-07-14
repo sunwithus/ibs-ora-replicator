@@ -1,0 +1,237 @@
+﻿@using InterBaseSql.Data.InterBaseClient;
+
+@rendermode InteractiveServer
+
+<MudPaper Style="width: 100%; position: relative;">
+    <h4 style="float: left;">@Title</h4>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="(e => ToggleOverlay(true))" Style="float: left; left: 10px;">Настройки подключения</MudButton>
+    <MudOverlay Visible="isVisible" DarkBackground="true" Absolute="false">
+        <EditForm Model="@settings" OnValidSubmit="OnValidSubmit">
+            <DataAnnotationsValidator />
+            <MudGrid>
+                <MudItem xs="12" sm="7">
+                    <MudCard>
+                        <MudCardContent>
+                            <MudTextField Label="Пользователь" @bind-Value="settings.User" For="@(() => settings.User)" />
+                            <MudTextField Label="Пароль" HelperText="По умолчанию - masterkey" Class="mt-3"
+                                          @bind-Value="settings.Password" For="@(() => settings.Password)" InputType="InputType.Password" />
+                            <MudTextField Label="Имя сервера" Class="mt-3" @oninput="@(e => FieldValueChanged())"
+                                          @bind-Value="settings.DataSource" For="@(() => settings.DataSource)" />
+                            <MudTextField Label="Имя базы данных" Class="mt-3" @oninput="@(e => FieldValueChanged())"
+                                          @bind-Value="settings.Database" For="@(() => settings.Database)" />
+                            @*<MudTextField Label="Папка с аудио данными" Class="mt-3" @oninput="@(e => FieldValueChanged())"
+                                          @bind-Value="settings.sourceFolderPath" For="@(() => settings.sourceFolderPath)" />
+                            <MudTextField Label="Папка, в которую переместить файлы после репликации" Class="mt-3" @oninput="@(e => FieldValueChanged())"
+                                          @bind-Value="settings.destinationFolderPath" For="@(() => settings.destinationFolderPath)" />
+                            <MudCheckBox @bind-Value="@settings.deleteAfterComplete" Color="Color.Primary" Label="Удалить файлы после репликации"></MudCheckBox>
+                            *@
+                            <MudCheckBox @bind-Value="@settings.tryToParse" Color="Color.Primary" Label="Попробовать найти идентификаторы"></MudCheckBox>
+                        </MudCardContent>
+                        <MudCardActions>
+                            <MudButton  OnClick="@(e => TestButtonClick())" ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Тест подключения</MudButton>
+
+                            <MudButton OnClick="@(e => ApplyButtonClick())" ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Применить</MudButton>&nbsp;
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(e => ToggleOverlay(false))">Отмена</MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+                <MudItem xs="12" sm="5">
+                    <MudPaper Class="pa-4 mud-height-full">
+                        <MudText Typo="Typo.subtitle2">Панель состояния</MudText>
+                            &nbsp;
+                            @if (success)
+                            {
+                                <br />
+                                <MudText Style="white-space: pre-wrap; max-width: 300px;" Color="Color.Info">@message</MudText>
+                                <br />
+                                
+                                @if (successConnection /*&& successSourceFolderPath*/)
+                                {
+                                    <MudText Color="Color.Success">Настройки корректны!</MudText>
+                                }
+                                else
+                                {
+                                    <MudText Color="Color.Error">Ошибка подключения или ошибка директории!</MudText>
+                                }
+                            <br />
+                        }
+                            else
+                            {
+                                <MudText Color="@Color.Error">
+                                    <ValidationSummary />
+                                </MudText>
+                            }
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.body2" Align="Align.Center">
+                        Fill out the form correctly to see the success message.
+                    </MudText>
+                </MudItem>
+            </MudGrid>
+        </EditForm>
+
+    </MudOverlay>
+</MudPaper>
+
+@code {
+    [Parameter]
+    public string Title { get; set; } = "Default Title";
+    [Parameter]
+    public string nameConfigFile { get; set; } = "";
+
+    private bool isVisible;
+    public void ToggleOverlay(bool value)
+    {
+        isVisible = value;
+    }
+
+
+    bool success;
+    bool successConnection = false;
+    bool successSourceFolderPath = false;
+    private void OnValidSubmit(EditContext context)
+    {
+        success = true;
+    }
+
+    string connectionString = "";
+    Settings settings = new();
+    string message = "";
+
+    public class Settings
+    {
+        public string User { get; set; } = "SYSDBA";
+        public string Password { get; set; } = "masterkey";
+        public string Database { get; set; } = "";
+        public string DataSource { get; set; } = "";
+        public string sourceFolderPath { get; set; } = @"C:\dotnet\wav";
+        public string destinationFolderPath { get; set; } = "";
+        public bool deleteAfterComplete { get; set; } = false;
+        public bool tryToParse { get; set; } = true;
+    }
+
+
+
+    private void CheckDatabaseConnection()
+    {
+        try
+        {
+            using (var connection = new IBConnection(connectionString))
+            {
+                connection.Open();
+                Console.WriteLine("Connection to InterBase opened successfully.");
+                message += "Соединение с Interbase установлено!\n";
+                message += "-----------------------------------\n";
+                connection.Close();
+                Console.WriteLine("Connection to InterBase closed successfully.");
+                successConnection = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error connecting to InterBase: " + ex.Message);
+            message += "Ошибка подключения к InterBase: " + ex.Message + "\n\n";
+        }
+    }
+
+    private void CheckAudioDataFolder()
+    {
+        if (Directory.Exists(settings.sourceFolderPath))
+        {
+            Console.WriteLine("Audio data folder exists.");
+            message += "Папка с аудио данными существует.\n";
+            successSourceFolderPath = true;
+        }
+        else
+        {
+            Console.WriteLine("Audio data folder does not exist.");
+            message += "Папка с аудио данными указана не корректно.\n";
+        }
+    }
+    private void TestButtonClick()
+    {
+        message = "";
+        connectionString = $"User={settings.User};Password={settings.Password};Database={settings.Database};DataSource={settings.DataSource};" +
+                    "Port=3050;Dialect=3;Charset=NONE;Role=;Connection lifetime=15;Pooling=true;MinPoolSize=0;MaxPoolSize=50;Packet Size=8192;ServerType=0";
+        //message = connectionString.Split(';').Aggregate("Параметры подключения: ", (current, next) => current + next + "\n");
+
+        // Проверка наличия подключения к базе данных
+        CheckDatabaseConnection();
+
+        // Проверка наличия папки с аудиоданными
+        //CheckAudioDataFolder();
+
+        StateHasChanged();
+    }
+    private void SaveSettingsToFile()
+    {
+        string filePath = nameConfigFile;
+        File.WriteAllLines(filePath, new string[]
+        {
+        $"User={settings.User}",
+        $"Password={settings.Password}",
+        $"Database={settings.Database}",
+        $"DataSource={settings.DataSource}",
+        $"sourceFolderPath={settings.sourceFolderPath}",
+        $"destinationFolderPath={settings.destinationFolderPath}",
+        $"deleteAfterComplete={settings.deleteAfterComplete}",
+        $"tryToParse={settings.tryToParse}"
+        });
+    }
+
+    private void FieldValueChanged()
+    {
+        ResetMessage();
+    }
+    private void ResetMessage()
+    {
+        message = "";
+        StateHasChanged();
+    }
+    private void ApplyButtonClick()
+    {
+        ApplySettings();
+        ResetMessage();
+    }
+    private void ApplySettings()
+    {
+        SaveSettingsToFile();
+        ToggleOverlay(false);
+    }
+    protected override void OnInitialized()
+    {
+        LoadSettingsFromFile();
+    }
+
+    private void LoadSettingsFromFile()
+    {
+        string filePath = nameConfigFile;
+        if (File.Exists(filePath))
+        {
+            string[] lines = File.ReadAllLines(filePath);
+            settings.User = GetValueFromLine(lines, "User");
+            settings.Password = GetValueFromLine(lines, "Password");
+            settings.Database = GetValueFromLine(lines, "Database");
+            settings.DataSource = GetValueFromLine(lines, "DataSource");
+            settings.sourceFolderPath = GetValueFromLine(lines, "sourceFolderPath");
+            settings.destinationFolderPath = GetValueFromLine(lines, "destinationFolderPath");
+            settings.deleteAfterComplete = Convert.ToBoolean(GetValueFromLine(lines, "deleteAfterComplete"));
+            settings.tryToParse = Convert.ToBoolean(GetValueFromLine(lines, "tryToParse"));
+        }
+    }
+    public string GetValueFromLine(string[] lines, string key)
+    {
+        foreach (var line in lines)
+        {
+            if (line.StartsWith($"{key}="))
+            {
+                return line.Replace($"{key}=", "");
+            }
+        }
+        return null;
+    }
+
+}
+
+

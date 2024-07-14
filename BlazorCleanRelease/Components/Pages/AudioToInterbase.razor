@@ -1,0 +1,26 @@
+﻿@page "/replicator-ibs"
+@rendermode InteractiveServer
+@using BlazorCleanRelease.Components.Elements;
+@inject IJSRuntime JSRuntime;
+
+
+<PageTitle>Replicator IBS</PageTitle>
+<h2 style="font-family: 'Arial', sans-serif; color: #333; text-align: center; margin-top: 20px;">Аудио в Interbase</h2>
+<br />
+
+<InterbaseConnectionSettings nameConfigFile="@nameConfigFile" Title="&#8594;" />
+
+<LoadManyFilesFromFolder pathToSaveTempAudio="@pathToSaveTempAudio" onlyAudioType="@onlyAudioType" />
+<br />
+
+<div id="startibs" style="visibility: hidden;">
+    <InterbaseAudioReplication nameConfigFile="@nameConfigFile" pathToSaveTempAudio="@pathToSaveTempAudio" />
+</div>
+
+
+
+@code {
+    private string nameConfigFile = "conf-ibs.ini";
+    private string pathToSaveTempAudio = @"C:\temp\2\";
+    private bool onlyAudioType = true;
+}

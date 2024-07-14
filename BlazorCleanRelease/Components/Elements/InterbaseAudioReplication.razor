@@ -1,0 +1,349 @@
+﻿@using InterBaseSql.Data.InterBaseClient;
+@using FFMpegCore;
+@using System.Diagnostics;
+@using BlazorCleanRelease.Components.Classes;
+@inject IJSRuntime JSRuntime;
+
+    <div class="text-left">
+    <h4 style="float: left;">&#8594;</h4>&nbsp;&nbsp;<MudButton OnClick="@(e => StartReplication())" ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Пуск!</MudButton>
+    </div>
+    <br />
+<MudText Typo="Typo.subtitle2">Консоль: <span id="progress">@progress</span></MudText>
+<MudPaper Class="pa-4 mud-height-full">
+    <MudText Style="height: 300px; overflow-y: scroll; white-space: pre-wrap;" Color="Color.Info" id="console">@message</MudText>
+</MudPaper>
+
+
+@code {
+    [Parameter]
+    public string pathToSaveTempAudio { get; set; } = "";
+    [Parameter]
+    public string nameConfigFile { get; set; } = "";
+
+    public class Settings
+    {
+        public string User { get; set; } = "";
+        public string Password { get; set; } = "";
+        public string Database { get; set; } = "";
+        public string DataSource { get; set; } = "";
+        public string sourceFolderPath { get; set; } = "";
+        public string destinationFolderPath { get; set; } = "";
+        public bool deleteAfterComplete { get; set; } = false;
+        public bool tryToParse { get; set; } = true;
+    }
+
+    private string ffmpegExePath = @"C:\dotnet\ffmpeg\ffmpeg.exe";
+    private int currentProgress = 0;
+    private int durationOfWav = 0;
+    private Settings settings = new();
+    private string message = "";
+    private string progress = "";
+
+    protected override void OnInitialized()
+    {
+        LoadSettingsFromFile(nameConfigFile);
+    }
+
+    private void LoadSettingsFromFile(string filePath)
+    {
+        if (File.Exists(filePath))
+        {
+            string[] lines = File.ReadAllLines(filePath);
+            settings.User = GetValueFromLine(lines, "User");
+            settings.Password = GetValueFromLine(lines, "Password");
+            settings.Database = GetValueFromLine(lines, "Database");
+            settings.DataSource = GetValueFromLine(lines, "DataSource");
+            settings.sourceFolderPath = GetValueFromLine(lines, "sourceFolderPath");
+            settings.destinationFolderPath = GetValueFromLine(lines, "destinationFolderPath");
+            settings.deleteAfterComplete = Convert.ToBoolean(GetValueFromLine(lines, "deleteAfterComplete"));
+            settings.tryToParse = Convert.ToBoolean(GetValueFromLine(lines, "tryToParse"));
+        }
+    }
+
+    private string GetValueFromLine(string[] lines, string key)
+    {
+        foreach (var line in lines)
+        {
+            if (line.StartsWith($"{key}="))
+            {
+                return line.Replace($"{key}=", "");
+            }
+        }
+        return "";
+    }
+    // если стерео => _left + _right, если моно => _mono для БД с кодеком pcm_alaw ; потом + .wav для whisper с кодеком pcm_s16le
+    // т.е. в папке оригинал + 2 (или 1) + 1
+    private async Task RunFFmpeg(string inputFileName)
+    {
+        var mediaInfo = await FFProbe.AnalyseAsync(inputFileName);
+        durationOfWav = Convert.ToInt32(mediaInfo.PrimaryAudioStream?.Duration.TotalSeconds);
+        Console.WriteLine(durationOfWav);
+
+        string ffmpegCommandParams;
+
+        if (mediaInfo.PrimaryAudioStream?.Channels >= 2)
+        {
+            ffmpegCommandParams = $"-i {inputFileName} -filter_complex \"[0:0]pan=1|c0=c0[left];[0:0]pan=1|c0=c1[right]\" ";
+            ffmpegCommandParams += $"-map \"[left]\" -c:a pcm_alaw -b:a 128k -ar 8000 {inputFileName}_left.wav ";
+            ffmpegCommandParams += $"-map \"[right]\" -c:a pcm_alaw -b:a 128k -ar 8000 {inputFileName}_right.wav ";
+        }
+        else
+        {
+            ffmpegCommandParams = $"-i {inputFileName} -codec:a pcm_alaw -b:a 128k -ac 1 -ar 8000 {inputFileName}_mono.wav";
+        }
+        await RunCmdCommand(ffmpegExePath, ffmpegCommandParams);
+
+        // формат файла для Whisper
+        /*
+        ffmpegCommandParams = $"-i {inputFileName} -codec:a pcm_s16le -b:a 128k -ac 1 -ar 16000 {inputFileName}.wav";
+        await RunCmdCommand(ffmpegExePath, ffmpegCommandParams);
+        Console.WriteLine($"FFmpeg в wav: {inputFileName}.wav");
+    */
+    }
+
+    private async Task RunCmdCommand(string executablePath, string command)
+    {
+        ProcessStartInfo startInfo = new ProcessStartInfo
+            {
+                FileName = "cmd.exe",
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+        using (Process process = new Process { StartInfo = startInfo })
+        {
+            process.OutputDataReceived += (sender, e) =>
+            {
+                if (!string.IsNullOrEmpty(e.Data))
+                {
+                    Console.WriteLine(e.Data);
+                    InvokeAsync(() =>
+                    {
+                        string beforeTime = "->";
+                        int indexOfTimePosition = e.Data.IndexOf(beforeTime);
+                        if (indexOfTimePosition != -1)
+                        {
+                            string time = e.Data.Substring(indexOfTimePosition + beforeTime.Length, 8);
+                            TimeSpan timeSpan = TimeSpan.Parse(time);
+                            currentProgress = (int)(100 * timeSpan.TotalSeconds / durationOfWav);
+                            currentProgress = currentProgress > 100 ? 99 : currentProgress;
+                            Console.WriteLine($"Прогресс: {currentProgress}");
+                        }
+                        StateHasChanged();
+                    });
+                }
+            };
+
+            process.Start();
+
+            using (StreamWriter sw = process.StandardInput)
+            {
+                if (sw.BaseStream.CanWrite)
+                {
+                    sw.WriteLine($"c: cd");
+                    sw.WriteLine($"cd {Path.GetDirectoryName(executablePath)}");
+                    sw.WriteLine($"{Path.GetFileName(executablePath)} {command}");
+                    sw.WriteLine("exit");
+                }
+            }
+            process.BeginOutputReadLine();
+            await Task.Run(() => process.WaitForExit());
+        }
+    }
+
+    private async Task StartReplication()
+    {
+        LoadSettingsFromFile(nameConfigFile);
+
+        message = "";
+        progress = "";
+
+        await JSRuntime.InvokeVoidAsync("showElement", "console");
+        await JSRuntime.InvokeVoidAsync("showElement", "progress");
+        string connectionString = $"User={settings.User};Password={settings.Password};Database={settings.Database};DataSource={settings.DataSource};" +
+            "Port=3050;Dialect=3;Charset=NONE;Role=;Connection lifetime=15;Pooling=true;MinPoolSize=0;MaxPoolSize=50;Packet Size=8192;ServerType=0";
+
+        string[] files = Directory.GetFiles(pathToSaveTempAudio);
+
+        try
+        {
+            using (var connection = new IBConnection(connectionString))
+            {
+                connection.Open();
+                Console.WriteLine("Connection to InterBase opened successfully.");
+                message = "\nПодключение к БД выполнено успешно." + message;
+                await InvokeAsync(() => { StateHasChanged(); });
+
+                int filesCount = files.Count(); int currentFileNum = 0;
+                foreach (var filePath in files)
+                {
+                    currentFileNum++;
+                    progress = currentFileNum + " / " + filesCount;
+                    try
+                    {
+                        int key = GetNextKey(connection);
+                        var value = new { Timestamp = DateTime.Now, IMEI = "", Caller = "", Talker = "", Calltype = 2 };
+                        var fileData = ParseFileName(filePath);
+                        if (!settings.tryToParse)
+                        {
+                            fileData.Timestamp = value.Timestamp;
+                            fileData.IMEI = value.IMEI;
+                            fileData.Caller = value.Caller;
+                            fileData.Talker = value.Talker;
+                            fileData.Calltype = value.Calltype;
+                        }
+
+                        await RunFFmpeg(filePath);
+
+                        var fileDataLeft = File.Exists(filePath + "_left.wav") ? File.ReadAllBytes(filePath + "_left.wav") : null;
+                        if (fileDataLeft == null) fileDataLeft = File.Exists(filePath + "_mono.wav") ? File.ReadAllBytes(filePath + "_mono.wav") : null;
+                        var fileDataRight = File.Exists(filePath + "_right.wav") ? File.ReadAllBytes(filePath + "_right.wav") : null;
+
+                        if (fileDataLeft != null)
+                        {
+                            using (var transaction = connection.BeginTransaction())
+                            {
+                                InsertIntoSpeechTable(connection, transaction, key, fileData.Timestamp, fileData.IMEI, fileData.Caller, fileData.Talker, fileData.Calltype, durationOfWav);
+                                Console.WriteLine("insert into table SPR_SPEECH_TABLE: " + key + " successfully");
+                                InsertIntoDataTable(connection, transaction, key, fileDataLeft, fileDataRight);
+                                Console.WriteLine("insert to SPR_SP_DATA_1_TABLE: " + key + " successfully");
+                                transaction.Commit();
+                            }
+                        }
+
+
+                        message = "\n" + filePath + " - записан в БД." + message;
+                    }
+                    catch (Exception ex)
+                    {
+                        message = "\n" + filePath + " - ошибка записи. " + ex.Message + message;
+                    }
+                    
+                }
+
+                connection.Close();
+                Console.WriteLine("Connection to InterBase closed.");
+                message = "Подключение к базе закрыто.\n" + message;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error connecting or operating to InterBase: " + ex.Message);
+            message = "Ошибка при выполнении операции с базой данных InterBase: " + ex.Message + "\n" + message;
+        }
+        // очистка директории после всех операций
+        Operations operationsWithFiles = new Operations();
+        operationsWithFiles.clearFolder(pathToSaveTempAudio);
+    }
+
+    private int GetNextKey(IBConnection connection)
+    {
+        using (var command = new IBCommand("SELECT max(S_INCKEY) FROM SPR_SPEECH_TABLE", connection))
+        {
+            var result = command.ExecuteScalar();
+            return result != DBNull.Value ? Convert.ToInt32(result) + 1 : 1;
+        }
+    }
+
+    private (DateTime Timestamp, string IMEI, string Caller, string Talker, int Calltype) ParseFileName(string filePath)
+    {
+        var fileExt = Path.GetExtension(filePath);
+        var fileNameNoExt = Path.GetFileNameWithoutExtension(filePath);
+        var parts = fileNameNoExt.Split('_');
+
+        try
+        {
+            //01012016_000759_35000000000000_79046283999_79046283999
+            if (fileExt == ".wav")
+            {
+                if (parts.Length == 5)
+                {
+                    string timestampString = parts[0].Insert(2, "-").Insert(5, "-") + " " + parts[1].Insert(2, ":").Insert(5, ":");
+                    DateTime timestamp = DateTime.ParseExact(timestampString, "dd-MM-yyyy HH:mm:ss", null);
+
+                    return (timestamp, parts[2], parts[3], parts[4], 2); // Calltype = 2 - неизвестно, 0 - входящий, 1 - исходящий
+                }
+                else
+                {
+                    throw new InvalidOperationException("Invalid WAV file name format.");
+                }
+            }
+            else if (fileExt == ".mp3")
+            {
+                //79841944120_79242505061_Call_In_2023-11-23_16_15_36
+                if (parts.Length == 8)
+                {
+                    string timestampString = parts[4] + " " + parts[5].Substring(0, 2) + ":" + parts[6].Substring(0, 2) + ":" + parts[7].Substring(0, 2);
+                    DateTime timestamp = DateTime.ParseExact(timestampString, "yyyy-MM-dd HH:mm:ss", null);
+                    int calltype = (parts[3] == "In") ? 0 : (parts[3] == "Out") ? 1 : 2;
+
+                    return (timestamp, "", parts[0], parts[1], calltype);
+                }
+                else
+                {
+                    throw new InvalidOperationException("Invalid MP3 file name format.");
+                }
+            }
+        }
+        catch
+        {
+            Console.WriteLine("Не удалось получить данные из названия файла: " + fileNameNoExt);
+            message = " Не удалось получить данные из названия файла. " + fileNameNoExt + message;
+            return (DateTime.Now, "", "", "", 2);
+            //throw;
+        }
+
+        throw new InvalidOperationException("Unsupported file extension: " + fileExt);
+    }
+
+    private void InsertIntoSpeechTable(IBConnection connection, IBTransaction transaction, int key, DateTime timestamp, string imei, string caller, string talker, int calltype, int duration)
+    {
+        string durationString = string.Format("{0:D2}:{1:D2}:{2:D2}", duration / 3600, (duration % 3600) / 60, duration % 60);
+        //string durationString = string.Format("+00 {0:D2}:{1:D2}:{2:D2}.000000", duration / 3600, (duration % 3600) / 60, duration % 60); //для Oracle
+
+        using (var insertCommand = new IBCommand("insert into SPR_SPEECH_TABLE (S_INCKEY, S_TYPE, S_PRELOOKED, S_DEVICEID, S_DATETIME, S_DURATION, S_EVENT, S_EVENTCODE, S_STANDARD, S_NETWORK, S_SYSNUMBER3, S_SOURCEID, S_STATUS, S_DCHANNEL, S_RCHANNEL, S_TALKER, S_USERNUMBER, S_CALLTYPE) " +
+                                                "values (@S_INCKEY, @S_TYPE, @S_PRELOOKED, @S_DEVICEID, @S_DATETIME, @S_DURATION, @S_EVENT, @S_EVENTCODE, @S_STANDARD, @S_NETWORK, @S_SYSNUMBER3, @S_SOURCEID, @S_STATUS, @S_DCHANNEL, @S_RCHANNEL, @S_TALKER, @S_USERNUMBER, @S_CALLTYPE)", connection, transaction))
+        {
+            insertCommand.Parameters.Add("@S_INCKEY", key);
+            insertCommand.Parameters.AddWithValue("@S_TYPE", 0);
+            insertCommand.Parameters.AddWithValue("@S_PRELOOKED", 0);
+            insertCommand.Parameters.AddWithValue("@S_DEVICEID", "MEDIUM_R");
+            insertCommand.Parameters.AddWithValue("@S_DATETIME", timestamp);
+
+            insertCommand.Parameters.AddWithValue("@S_DURATION", durationString);
+            insertCommand.Parameters.AddWithValue("@S_EVENT", 0);
+            insertCommand.Parameters.AddWithValue("@S_EVENTCODE", "GSM");
+            insertCommand.Parameters.AddWithValue("@S_STANDARD", "GSM_ABIS");
+            insertCommand.Parameters.AddWithValue("@S_NETWORK", null);
+            insertCommand.Parameters.AddWithValue("@S_SYSNUMBER3", imei);
+            insertCommand.Parameters.AddWithValue("@S_SOURCEID", 0);
+            insertCommand.Parameters.AddWithValue("@S_STATUS", 0);
+
+            insertCommand.Parameters.AddWithValue("@S_DCHANNEL", 2);
+            insertCommand.Parameters.AddWithValue("@S_RCHANNEL", 2);
+            insertCommand.Parameters.AddWithValue("@S_TALKER", talker);
+            insertCommand.Parameters.AddWithValue("@S_USERNUMBER", caller);
+            insertCommand.Parameters.AddWithValue("@S_CALLTYPE", calltype);
+            
+            insertCommand.ExecuteNonQuery();
+        }
+
+    }
+
+    private void InsertIntoDataTable(IBConnection connection, IBTransaction transaction, int key, byte[] dataLeft, byte[]? dataRight = null)
+    {
+        // добавляем данные в параметр для поля BLOB в базе данных
+        using (var insertCommand = new IBCommand("insert into SPR_SP_DATA_1_TABLE (S_INCKEY, S_ORDER, S_FSPEECH, S_RSPEECH, S_RECORDTYPE) values (@S_INCKEY, @S_ORDER, @S_FSPEECH, @S_RSPEECH, @S_RECORDTYPE)", connection, transaction))
+        {
+            insertCommand.Parameters.Add("@S_INCKEY", key);
+            insertCommand.Parameters.Add("@S_ORDER", 1);
+            insertCommand.Parameters.Add("@S_RECORDTYPE", "PCMA");
+            insertCommand.Parameters.Add("@S_FSPEECH", IBDbType.Array, dataLeft.Length).Value = dataLeft;
+            insertCommand.Parameters.Add("@S_RSPEECH", IBDbType.Array, dataRight?.Length ?? 0).Value = dataRight;
+            insertCommand.ExecuteNonQuery();
+        }
+    }
+
+}

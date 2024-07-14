@@ -1,0 +1,198 @@
+﻿@using Oracle.ManagedDataAccess.Client;
+
+@rendermode InteractiveServer
+
+<MudPaper Style="width: 100%; position: relative;">
+    <h4 style="float: left;">&#8594;</h4>
+    <MudButton Variant="Variant.Filled" Color="@colorButton" OnClick="@(e => ToggleOverlay(true))" Style="float: left; left: 10px;">Настройки подключения</MudButton>
+    <MudOverlay Visible="isVisible" DarkBackground="true" Absolute="false">
+        <EditForm Model="@settings" OnValidSubmit="OnValidSubmit">
+            <DataAnnotationsValidator />
+            <MudGrid>
+                <MudItem xs="12" sm="7">
+                    <MudCard>
+                        <MudCardContent>
+                            <MudTextField Label="Пользователь" @bind-Value="settings.User" For="@(() => settings.User)" />
+                            <MudTextField Label="Пароль" HelperText="По умолчанию - masterkey" Class="mt-3"
+                                          @bind-Value="settings.Password" For="@(() => settings.Password)" InputType="InputType.Password" />
+                            <MudTextField Label="IP-адрес сервера / sprutora" Class="mt-3" @oninput="@(e => FieldValueChanged())"
+                                          @bind-Value="settings.DataSource" For="@(() => settings.DataSource)" />
+                            <MudTextField Label="Схема базы данных" Class="mt-3" @oninput="@(e => FieldValueChanged())"
+                                          @bind-Value="settings.Scheme" For="@(() => settings.Scheme)" />
+                            <MudCheckBox @bind-Value="@settings.tryToParse" Color="@colorButton" Label="Попробовать найти идентификаторы"></MudCheckBox>
+                        </MudCardContent>
+                        <MudCardActions>
+                            <MudButton OnClick="@(e => TestButtonClick())" ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="@colorButton">Тест подключения</MudButton>
+
+                            <MudButton OnClick="@(e => ApplyButtonClick())" ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="@colorButton" Class="ml-auto">Применить</MudButton>&nbsp;
+                            <MudButton Variant="Variant.Filled" Color="@colorButton" OnClick="@(e => ToggleOverlay(false))">Отмена</MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+                <MudItem xs="12" sm="5">
+                    <MudPaper Class="pa-4 mud-height-full">
+                        <MudText Typo="Typo.subtitle2">Панель состояния</MudText>
+                        &nbsp;
+                        @if (success)
+                        {
+                            <br />
+                            <MudText Style="white-space: pre-wrap; max-width: 300px;" Color="Color.Info">@message</MudText>
+
+                            <br />
+
+                            @if (successConnection)
+                            {
+                                <MudText Color="Color.Success">Настройки корректны!</MudText>
+                            }
+                            else
+                            {
+                                <MudText Color="Color.Error">Ошибка подключения!</MudText>
+                            }
+                            <br />
+                        }
+                        else
+                        {
+                            <MudText Color="@Color.Error">
+                                <ValidationSummary />
+                            </MudText>
+                        }
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.body2" Align="Align.Center">
+                        Fill out the form correctly to see the success message.
+                    </MudText>
+                </MudItem>
+            </MudGrid>
+        </EditForm>
+
+    </MudOverlay>
+</MudPaper>
+
+
+
+@code {
+    [Parameter]
+    public string nameConfigFile { get; set; } = "";
+    [Parameter]
+    public MudBlazor.Color colorButton { get; set; } = Color.Secondary;
+
+    private bool isVisible;
+    public void ToggleOverlay(bool value)
+    {
+        isVisible = value;
+    }
+    bool success;
+    bool successConnection = false;
+    bool successSourceFolderPath = false;
+    private void OnValidSubmit(EditContext context)
+    {
+        success = true;
+    }
+
+    string conStringDBA = "";
+
+    Settings settings = new();
+    string message = "";
+
+    public class Settings
+    {
+        public string User { get; set; } = "SYSDBA";
+        public string Password { get; set; } = "masterkey";
+        public string DataSource { get; set; } = "192.168.2.125/sprutora";
+        public string Scheme { get; set; } = "test";
+        public bool tryToParse { get; set; } = true;
+    }
+
+    private void CheckDatabaseConnection()
+    {
+        try
+        {
+            using (OracleConnection con = new OracleConnection(conStringDBA))
+            {
+                con.Open();
+                Console.WriteLine("Connection to Oracle opened successfully.");
+                message += "Соединение с Oracle установлено!\n";
+                message += "-----------------------------------\n";
+                con.Close();
+                Console.WriteLine("Connection to Oracle closed successfully.");
+                successConnection = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error connecting to Oracle: " + ex.Message);
+            message += "Ошибка подключения к Oracle: " + ex.Message + "\n\n";
+        }
+    }
+
+    private void TestButtonClick()
+    {
+        message = "";
+        conStringDBA = $"User Id={settings.User};Password={settings.Password};Data Source={settings.DataSource};";
+        CheckDatabaseConnection();
+        StateHasChanged();
+    }
+
+    private void SaveSettingsToFile()
+    {
+        string filePath = nameConfigFile;
+        File.WriteAllLines(filePath, new string[]
+        {
+        $"User={settings.User}",
+        $"Password={settings.Password}",
+        $"DataSource={settings.DataSource}",
+        $"Scheme={settings.Scheme}",
+        $"tryToParse={settings.tryToParse}"
+        });
+    }
+    private void LoadSettingsFromFile()
+    {
+        string filePath = nameConfigFile;
+        if (File.Exists(filePath))
+        {
+            string[] lines = File.ReadAllLines(filePath);
+            settings.User = GetValueFromLine(lines, "User");
+            settings.Password = GetValueFromLine(lines, "Password");
+            settings.DataSource = GetValueFromLine(lines, "DataSource");
+            settings.Scheme = GetValueFromLine(lines, "Scheme");
+            settings.tryToParse = Convert.ToBoolean(GetValueFromLine(lines, "tryToParse"));
+        }
+    }
+    private string GetValueFromLine(string[] lines, string key)
+    {
+        foreach (var line in lines)
+        {
+            if (line.StartsWith($"{key}="))
+            {
+                return line.Replace($"{key}=", "");
+            }
+        }
+        return null;
+    }
+    private void FieldValueChanged()
+    {
+        ResetMessage();
+    }
+    private void ResetMessage()
+    {
+        message = "";
+        StateHasChanged();
+    }
+    private void ApplyButtonClick()
+    {
+        ApplySettings();
+        ResetMessage();
+    }
+    private void ApplySettings()
+    {
+        SaveSettingsToFile();
+        ToggleOverlay(false);
+    }
+    protected override void OnInitialized()
+    {
+        LoadSettingsFromFile();
+    }
+}
+
+

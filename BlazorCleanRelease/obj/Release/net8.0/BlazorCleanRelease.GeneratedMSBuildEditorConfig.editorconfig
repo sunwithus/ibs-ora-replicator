@@ -1,0 +1,90 @@
+is_global = true
+build_property.MudDebugAnalyzer = 
+build_property.MudAllowedAttributePattern = 
+build_property.MudIllegalParameters = 
+build_property.TargetFramework = net8.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = true
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = 
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property._SupportedPlatformList = Linux,macOS,Windows
+build_property.RootNamespace = BlazorCleanRelease
+build_property.RootNamespace = BlazorCleanRelease
+build_property.ProjectDir = C:\dotnet\BlazorCleanRelease\BlazorCleanRelease\
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 
+build_property.RazorLangVersion = 8.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.MSBuildProjectDirectory = C:\dotnet\BlazorCleanRelease\BlazorCleanRelease
+build_property._RazorSourceGeneratorDebug = 
+
+[C:/dotnet/BlazorCleanRelease/BlazorCleanRelease/Components/App.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xBcHAucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/dotnet/BlazorCleanRelease/BlazorCleanRelease/Components/Elements/InterbaseAudioReplication.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xFbGVtZW50c1xJbnRlcmJhc2VBdWRpb1JlcGxpY2F0aW9uLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/dotnet/BlazorCleanRelease/BlazorCleanRelease/Components/Elements/InterbaseConnectionSettings.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xFbGVtZW50c1xJbnRlcmJhc2VDb25uZWN0aW9uU2V0dGluZ3MucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/dotnet/BlazorCleanRelease/BlazorCleanRelease/Components/Elements/LoadFilesFromFolder.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xFbGVtZW50c1xMb2FkRmlsZXNGcm9tRm9sZGVyLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/dotnet/BlazorCleanRelease/BlazorCleanRelease/Components/Elements/LoadManyFilesFromFolder.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xFbGVtZW50c1xMb2FkTWFueUZpbGVzRnJvbUZvbGRlci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/dotnet/BlazorCleanRelease/BlazorCleanRelease/Components/Elements/OracleAudioReplication.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xFbGVtZW50c1xPcmFjbGVBdWRpb1JlcGxpY2F0aW9uLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/dotnet/BlazorCleanRelease/BlazorCleanRelease/Components/Elements/OracleConnectionSettings.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xFbGVtZW50c1xPcmFjbGVDb25uZWN0aW9uU2V0dGluZ3MucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/dotnet/BlazorCleanRelease/BlazorCleanRelease/Components/Pages/About.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBYm91dC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/dotnet/BlazorCleanRelease/BlazorCleanRelease/Components/Pages/AudioToInterbase.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBdWRpb1RvSW50ZXJiYXNlLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/dotnet/BlazorCleanRelease/BlazorCleanRelease/Components/Pages/AudioToOracle.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBdWRpb1RvT3JhY2xlLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/dotnet/BlazorCleanRelease/BlazorCleanRelease/Components/Pages/Error.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xFcnJvci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/dotnet/BlazorCleanRelease/BlazorCleanRelease/Components/Pages/Home.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xIb21lLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/dotnet/BlazorCleanRelease/BlazorCleanRelease/Components/Pages/WhisperServerCmd.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xXaGlzcGVyU2VydmVyQ21kLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/dotnet/BlazorCleanRelease/BlazorCleanRelease/Components/Routes.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xSb3V0ZXMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/dotnet/BlazorCleanRelease/BlazorCleanRelease/Components/_Imports.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xfSW1wb3J0cy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/dotnet/BlazorCleanRelease/BlazorCleanRelease/Components/Layout/MainLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xMYXlvdXRcTWFpbkxheW91dC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-cnfywzlk30
+
+[C:/dotnet/BlazorCleanRelease/BlazorCleanRelease/Components/Layout/NavMenu.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xMYXlvdXRcTmF2TWVudS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-wbjwfu1xhs

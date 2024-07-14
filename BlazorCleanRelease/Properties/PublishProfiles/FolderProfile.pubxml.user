@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+https://go.microsoft.com/fwlink/?LinkID=208121.
+-->
+<Project>
+  <PropertyGroup>
+    <_PublishTargetUrl>C:\dotnet\BlazorCleanRelease\BlazorCleanRelease\bin\Release\net8.0\publish\</_PublishTargetUrl>
+    <History>True|2024-07-12T13:04:35.2989366Z;True|2024-07-12T23:03:15.6026804+10:00;True|2024-07-12T20:28:54.2598042+10:00;True|2024-07-10T14:18:50.2373489+10:00;True|2024-07-09T16:28:08.5457794+10:00;True|2024-07-09T15:24:47.1540001+10:00;True|2024-07-09T15:24:31.1007513+10:00;True|2024-07-05T00:20:08.2721474+10:00;</History>
+    <LastFailureDetails />
+  </PropertyGroup>
+</Project>
