@@ -1,21 +1,12 @@
 ﻿@using BlazorCleanRelease.Components.Classes;
 @inject IJSRuntime JSRuntime;
 
-<br /><br />
-<h4>Выберите необходимые аудиофайлы:</h4>
-<p>
-    <label>
-        До @maxAllowedFiles файлов за раз размером до @(maxFileSize/1024/1024) Мб:
-        <br />
-        <MudButton Variant="Variant.Filled"
-                   Color="@colorButton"
-                   StartIcon="@Icons.Material.Filled.CloudUpload">
-            <InputFile @onclick="BeforeLoadFiles" OnChange="LoadFiles" multiple />
-        </MudButton>
-    </label>
-</p>
-
-
+Выберите необходимые аудиофайлы (до @maxAllowedFiles шт., до @(maxFileSize / 1024 / 1024) Мб):<br />
+<MudButton Variant="Variant.Filled" Color="@colorButton" StartIcon="@Icons.Material.Filled.CloudUpload">
+    <InputFile @onclick="BeforeLoadFiles" OnChange="LoadFiles" multiple />
+</MudButton>
+<br />
+<br />
 @if (isLoading)
 {
     <p>Progress: @string.Format("{0:P0}", progressPercent)</p>

@@ -252,45 +252,36 @@
         var fileExt = Path.GetExtension(filePath);
         var fileNameNoExt = Path.GetFileNameWithoutExtension(filePath);
         var parts = fileNameNoExt.Split('_');
-
         try
         {
-            //01012016_000759_35000000000000_79046283999_79046283999
-            if (fileExt == ".wav")
+            //01012016_000759_35000000000000_79046283999_79046283999.wav
+            if (parts.Length == 5)
             {
-                if (parts.Length == 5)
-                {
-                    string timestampString = parts[0].Insert(2, "-").Insert(5, "-") + " " + parts[1].Insert(2, ":").Insert(5, ":");
-                    DateTime timestamp = DateTime.ParseExact(timestampString, "dd-MM-yyyy HH:mm:ss", null);
+                string timestampString = parts[0].Insert(2, "-").Insert(5, "-") + " " + parts[1].Insert(2, ":").Insert(5, ":");
+                DateTime timestamp = DateTime.ParseExact(timestampString, "dd-MM-yyyy HH:mm:ss", null);
 
-                    return (timestamp, parts[2], parts[3], parts[4], 2); // Calltype = 2 - неизвестно, 0 - входящий, 1 - исходящий
-                }
-                else
-                {
-                    throw new InvalidOperationException("Invalid WAV file name format.");
-                }
+                return (timestamp, parts[2], parts[3], parts[4], 2); // Calltype = 2 - неизвестно, 0 - входящий, 1 - исходящий
             }
-            else if (fileExt == ".mp3")
+            //79841944120_79242505061_Call_In_2023-11-23_16_15_36.mp3
+            //_89841537912_Call_Out_2024-07-16_14_53_35.mp3
+            else if (parts.Length == 8)
             {
-                //79841944120_79242505061_Call_In_2023-11-23_16_15_36
-                if (parts.Length == 8)
-                {
-                    string timestampString = parts[4] + " " + parts[5].Substring(0, 2) + ":" + parts[6].Substring(0, 2) + ":" + parts[7].Substring(0, 2);
-                    DateTime timestamp = DateTime.ParseExact(timestampString, "yyyy-MM-dd HH:mm:ss", null);
-                    int calltype = (parts[3] == "In") ? 0 : (parts[3] == "Out") ? 1 : 2;
-
-                    return (timestamp, "", parts[0], parts[1], calltype);
-                }
-                else
-                {
-                    throw new InvalidOperationException("Invalid MP3 file name format.");
-                }
+                string timestampString = parts[4] + " " + parts[5].Substring(0, 2) + ":" + parts[6].Substring(0, 2) + ":" + parts[7].Substring(0, 2);
+                DateTime timestamp = DateTime.ParseExact(timestampString, "yyyy-MM-dd HH:mm:ss", null);
+                int calltype = (parts[3] == "In") ? 0 : (parts[3] == "Out") ? 1 : 2;
+                return (timestamp, "", parts[0], parts[1], calltype);
             }
+
+            else
+            {
+                throw new InvalidOperationException("Invalid file name format.");
+            }
+
         }
         catch
         {
             Console.WriteLine("Не удалось получить данные из названия файла: " + fileNameNoExt);
-            message = " Не удалось получить данные из названия файла. " + fileNameNoExt + message;
+            message = "Не удалось получить данные из названия файла: " + fileNameNoExt + message;
             return (DateTime.Now, "", "", "", 2);
             //throw;
         }

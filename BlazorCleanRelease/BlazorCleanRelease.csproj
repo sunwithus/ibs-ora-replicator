@@ -13,4 +13,36 @@
     <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="23.4.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="Components\Pages\DatabaeProcessing.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+  </ItemGroup>
+
+	<!-- Добавляем файлы settings.ini и settings2.ini -->
+	<ItemGroup>
+		<Content Update="options.ini">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		</Content>
+		<Content Update="conf-ora.ini">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		</Content>
+		<Content Update="conf-ibs.ini">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		</Content>
+	</ItemGroup>
+
+	<!-- Удаляем старый Target, добавляем новый -->
+	<Target Name="PublishFiles" AfterTargets="Publish">
+		<ItemGroup>
+			<PublishFiles Include="options.ini;conf-ora.ini;conf-ibs.ini">
+				<PublishTo>$(PublishDir)</PublishTo>
+			</PublishFiles>
+		</ItemGroup>
+		<Copy SourceFiles="@(PublishFiles)" DestinationFolder="%(PublishFiles.PublishTo)" />
+	</Target>
+
 </Project>

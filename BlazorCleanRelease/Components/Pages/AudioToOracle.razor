@@ -1,6 +1,7 @@
 ﻿@page "/replicator-ora"
 @rendermode InteractiveServer
 @using BlazorCleanRelease.Components.Elements;
+@using BlazorCleanRelease.Components.Classes;
 @inject IJSRuntime JSRuntime;
 
 
@@ -8,18 +9,116 @@
 <h2 style="font-family: 'Arial', sans-serif; color: #333; text-align: center; margin-top: 20px;">Аудио в Oracle</h2>
 <br />
 
-<OracleConnectionSettings nameConfigFile="@nameConfigFile" colorButton="@colorButton" />
 
-<LoadManyFilesFromFolder pathToSaveTempAudio="@pathToSaveTempAudio" onlyAudioType="@onlyAudioType" colorButton="@colorButton" />
+<MudPaper Class="d-flex justify-space-around">
+    <MudItem xs="4">
+        <OracleConnectionSettings nameConfigFile="@nameConfigFile" colorButton="@colorButton" />
+    </MudItem>
+    
+    <MudItem xs="4">
+        <b>Оператор: </b>
+        <InputSelect @bind-Value="sourceName" style="border:solid 1px black;">
+            <option value=""> </option>
+            @foreach (var item in operatorsArray ?? new string[0])
+            {
+            <option value="@item">@item</option>
+            }
+        </InputSelect>
+        <MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Default" OnClick="@(e => ToggleOverlay(true))" />
+    </MudItem>
+    
+</MudPaper>
+<br />
+@if (sourceName != "")
+{
+<div style="text-align: left">
+    <LoadManyFilesFromFolder pathToSaveTempAudio="@pathToSaveTempAudio" onlyAudioType="@onlyAudioType" colorButton="@colorButton" />
+</div> 
+}
+else
+{
+    <MudText Typo="Typo.h6">Заполните значение "Оператор"</MudText>
+}
+
 <br />
 
 <div id="startibs" style="visibility: hidden">
-    <OracleAudioReplication nameConfigFile="@nameConfigFile" pathToSaveTempAudio="@pathToSaveTempAudio" />
+    <OracleAudioReplication nameConfigFile="@nameConfigFile" pathToSaveTempAudio="@pathToSaveTempAudio" sourceName="@sourceName" />
 </div>
 
+<MudOverlay Visible="isOpen" DarkBackground="true" Absolute="false">
+    <MudCard Style="width: 700px; text-align: center">
+        <MudCardContent>
+            <MudText Typo="Typo.h6">Редактировать список (запись в столбец "Имя источника")</MudText>
+            <MudText Typo="Typo.body1">Введите имя (nick) с новой строки</MudText><MudDivider /><br />
+            <InputTextArea style="border:solid 1px black; width:100%;min-height:200px" @bind-Value="operatorsArrayString" />
+        </MudCardContent>
+        <MudCardActions Class="d-flex justify-space-around">
+            <MudButton Variant="Variant.Filled" Color=@colorButton @onclick="SaveOperators">Save</MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Default" @onclick="CancelEdit">Cancel</MudButton>
+        </MudCardActions>
+    </MudCard>
+</MudOverlay>
+
+
 @code {
-    private string nameConfigFile = "conf-ora.ini";
+    private string sourceName = "";
+    private static string nameConfigFile = "conf-ora.ini";
+    private static string nameOptionsFile = "options.ini";
     private string pathToSaveTempAudio = @"C:\temp\3\";
     private bool onlyAudioType = true;
     private MudBlazor.Color colorButton = Color.Secondary;
+    private string[]? operatorsArray;
+    private string? operatorsArrayString;
+    private bool isOpen = false;
+    
+    protected override void OnInitialized()
+    {
+        operatorsArray = LoadOperatorsFromFile(nameOptionsFile).Trim().TrimEnd(';').Split(";");
+        operatorsArrayString = string.Join("\n", operatorsArray);
+    }
+    
+    private string LoadOperatorsFromFile(string filePath)
+    {
+        if (File.Exists(filePath))
+        {
+            Operations operations = new Operations();
+            string[] lines = File.ReadAllLines(filePath);
+            string line = operations.GetValueFromLine(lines, "sourceNamesAll");
+            return line;
+        }
+        return "";
+    }
+
+    public void ToggleOverlay(bool value)
+    {
+        isOpen = value;
+    }
+
+    private void ShowEditDialog()
+    {
+        isOpen = true;
+    }
+
+    private void SaveOperators()
+    {
+        operatorsArray = operatorsArrayString.Split("\n");
+        SaveOperatorsToFile(nameOptionsFile, operatorsArray);
+        isOpen = false;
+    }
+
+    private void CancelEdit()
+    {
+        isOpen = false;
+    }
+
+    private void SaveOperatorsToFile(string filePath, string[] operators)
+    {
+        string line = string.Join(";", operators);
+        Operations operations = new Operations();
+        string[] lines = File.ReadAllLines(filePath);
+        lines[operations.GetLineIndex(lines, "sourceNamesAll")] = "sourceNamesAll=" + line;
+        File.WriteAllLines(filePath, lines);
+    }
+
 }
