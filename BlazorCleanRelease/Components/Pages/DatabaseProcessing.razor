@@ -1,0 +1,67 @@
+﻿@using System.Text;
+
+@page "/processing"
+
+@using Oracle.ManagedDataAccess.Client;
+@using BlazorCleanRelease.Components.Classes;
+
+<PageTitle>Выполнение процесса</PageTitle>
+<h2>Состояние выполнения</h2>
+<br />
+<div>@message</div>
+
+@code {
+
+    public class Settings
+    {
+        public string User { get; set; } = "SYSDBA";
+        public string Password { get; set; } = "masterkey";
+        public string DataSource { get; set; } = "192.168.2.125/sprutora";
+        public string Scheme { get; set; } = "test";
+    }
+    private Settings settings = new Settings();
+    private DatabaseProcessingClass databaseProcessingClass = new DatabaseProcessingClass();
+
+
+    private string message = "Поехали!!!\n";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Delay(10);
+        PasteComment("ыввыпыв444zdfg"); // TOTO: БД имеет кодировку 1251, получается абракадабра
+
+    }
+
+    public void PasteComment(string comment)
+    {
+        string conStringDBA = $"User Id={settings.User};Password={settings.Password};Data Source={settings.DataSource};";
+
+        try
+        {
+            using (OracleConnection connection = new OracleConnection(conStringDBA))
+            {
+                connection.Open();
+                int key = databaseProcessingClass.GetNextKey(connection, settings.Scheme) - 1; //текущий последний ключ
+                Console.WriteLine("key is " + key);
+                message += key + "\n" + comment;
+                using (OracleTransaction transaction = connection.BeginTransaction())
+                {
+                    //кодировка CL8MSWIN1251, которая используется в Спрут
+                    Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+                    Encoding encoding = Encoding.GetEncoding(1251);
+                    byte[] commentBytes = System.Text.Encoding.GetEncoding(1251).GetBytes(comment);
+
+                    databaseProcessingClass.InsertIntoCommentTable(connection, transaction, settings.Scheme, key, commentBytes);
+                    Console.WriteLine("insert to SPR_SP_COMMENT_TABLE: " + key + " successfully");
+                    transaction.Commit();
+                }
+                connection.Close();
+                Console.WriteLine("Connection to Oracle closed.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+}

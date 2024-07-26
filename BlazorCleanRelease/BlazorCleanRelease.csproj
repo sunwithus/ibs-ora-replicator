@@ -4,6 +4,10 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+	<!-- публикуем AOT <PublishAot>true</PublishAot> -->
+	<!-- компилировать проект на C# в нативное приложение, которое не использует JIT-компиляцию и может запускаться на компьютере без установленного .NET. -->
+	
+	  
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,7 +23,7 @@
     </Content>
   </ItemGroup>
 
-	<!-- Добавляем файлы settings.ini и settings2.ini -->
+	<!-- Добавляем файлы для публикации -->
 	<ItemGroup>
 		<Content Update="options.ini">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

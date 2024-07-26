@@ -3,12 +3,12 @@
   "WorkspaceRootPath": "C:\\dotnet\\BlazorCleanRelease\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{57D700A4-B070-4779-A262-609DC153BA76}|BlazorCleanRelease\\BlazorCleanRelease.csproj|c:\\dotnet\\blazorcleanrelease\\blazorcleanrelease\\blazorcleanrelease.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
-      "RelativeMoniker": "D:0:0:{57D700A4-B070-4779-A262-609DC153BA76}|BlazorCleanRelease\\BlazorCleanRelease.csproj|solutionrelative:blazorcleanrelease\\blazorcleanrelease.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+      "AbsoluteMoniker": "D:0:0:{57D700A4-B070-4779-A262-609DC153BA76}|BlazorCleanRelease\\BlazorCleanRelease.csproj|C:\\dotnet\\BlazorCleanRelease\\blazorcleanrelease\\components\\classes\\databaseprocessingclass.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{57D700A4-B070-4779-A262-609DC153BA76}|BlazorCleanRelease\\BlazorCleanRelease.csproj|solutionrelative:blazorcleanrelease\\components\\classes\\databaseprocessingclass.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{57D700A4-B070-4779-A262-609DC153BA76}|BlazorCleanRelease\\BlazorCleanRelease.csproj|c:\\dotnet\\blazorcleanrelease\\blazorcleanrelease\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{57D700A4-B070-4779-A262-609DC153BA76}|BlazorCleanRelease\\BlazorCleanRelease.csproj|solutionrelative:blazorcleanrelease\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+      "AbsoluteMoniker": "D:0:0:{57D700A4-B070-4779-A262-609DC153BA76}|BlazorCleanRelease\\BlazorCleanRelease.csproj|c:\\dotnet\\blazorcleanrelease\\blazorcleanrelease\\components\\pages\\databaseprocessing.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{57D700A4-B070-4779-A262-609DC153BA76}|BlazorCleanRelease\\BlazorCleanRelease.csproj|solutionrelative:blazorcleanrelease\\components\\pages\\databaseprocessing.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     }
   ],
   "DocumentGroupContainers": [
@@ -18,32 +18,33 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 1,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "BlazorCleanRelease.csproj",
-              "DocumentMoniker": "C:\\dotnet\\BlazorCleanRelease\\BlazorCleanRelease\\BlazorCleanRelease.csproj",
-              "RelativeDocumentMoniker": "BlazorCleanRelease\\BlazorCleanRelease.csproj",
-              "ToolTip": "C:\\dotnet\\BlazorCleanRelease\\BlazorCleanRelease\\BlazorCleanRelease.csproj",
-              "RelativeToolTip": "BlazorCleanRelease\\BlazorCleanRelease.csproj",
-              "ViewState": "AQIAAAIAAAAAAAAAAAAYwCkAAAAcAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2024-07-24T10:45:16.975Z",
+              "DocumentIndex": 1,
+              "Title": "DatabaseProcessing.razor",
+              "DocumentMoniker": "C:\\dotnet\\BlazorCleanRelease\\BlazorCleanRelease\\Components\\Pages\\DatabaseProcessing.razor",
+              "RelativeDocumentMoniker": "BlazorCleanRelease\\Components\\Pages\\DatabaseProcessing.razor",
+              "ToolTip": "C:\\dotnet\\BlazorCleanRelease\\BlazorCleanRelease\\Components\\Pages\\DatabaseProcessing.razor",
+              "RelativeToolTip": "BlazorCleanRelease\\Components\\Pages\\DatabaseProcessing.razor",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAB4AAAAuAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2024-07-25T07:35:01.412Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "appsettings.json",
-              "DocumentMoniker": "C:\\dotnet\\BlazorCleanRelease\\BlazorCleanRelease\\appsettings.json",
-              "RelativeDocumentMoniker": "BlazorCleanRelease\\appsettings.json",
-              "ToolTip": "C:\\dotnet\\BlazorCleanRelease\\BlazorCleanRelease\\appsettings.json",
-              "RelativeToolTip": "BlazorCleanRelease\\appsettings.json",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2024-07-24T10:28:47.689Z"
+              "DocumentIndex": 0,
+              "Title": "DatabaseProcessingClass.cs",
+              "DocumentMoniker": "C:\\dotnet\\BlazorCleanRelease\\BlazorCleanRelease\\Components\\Classes\\DatabaseProcessingClass.cs",
+              "RelativeDocumentMoniker": "BlazorCleanRelease\\Components\\Classes\\DatabaseProcessingClass.cs",
+              "ToolTip": "C:\\dotnet\\BlazorCleanRelease\\BlazorCleanRelease\\Components\\Classes\\DatabaseProcessingClass.cs",
+              "RelativeToolTip": "BlazorCleanRelease\\Components\\Classes\\DatabaseProcessingClass.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAmAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-25T13:58:34.42Z",
+              "EditorCaption": ""
             }
           ]
         }

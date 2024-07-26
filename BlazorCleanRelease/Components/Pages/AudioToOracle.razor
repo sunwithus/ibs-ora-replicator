@@ -10,7 +10,7 @@
 <br />
 
 
-<MudPaper Class="d-flex justify-space-around">
+<div class="d-flex justify-content-start" style="min-width:400px;">
     <MudItem xs="4">
         <OracleConnectionSettings nameConfigFile="@nameConfigFile" colorButton="@colorButton" />
     </MudItem>
@@ -26,9 +26,8 @@
         </InputSelect>
         <MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Default" OnClick="@(e => ToggleOverlay(true))" />
     </MudItem>
-    
-</MudPaper>
-<br />
+</div>
+
 @if (sourceName != "")
 {
 <div style="text-align: left">
